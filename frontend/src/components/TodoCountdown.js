@@ -25,7 +25,7 @@ function TodoCountdown({ todos }) {
 
   return (
     <div className="todo-countdown">
-      <h2>Upcoming Deadlines</h2>
+      <h2>Ойрхон дуусах таск</h2>
       <div className="countdown-list">
         {todosWithDeadline.map(todo => {
           const time = getTimeRemaining(todo.deadlineDate);
@@ -35,7 +35,7 @@ function TodoCountdown({ todos }) {
             <div key={todo.id} className={`countdown-item ${isOverdue ? 'overdue' : ''}`}>
               <h3>{todo.text}</h3>
               {isOverdue ? (
-                <div className="countdown-time overdue">Overdue!</div>
+                <div className="countdown-time overdue">Хугацаа хэтэрсэн!</div>
               ) : (
                 <div className="countdown-time">
                   {time.days > 0 && <span>{time.days}d </span>}

@@ -37,7 +37,7 @@ function Todo() {
 
   return (
     <div className="todo-container">
-      <h1>Todo List</h1>
+      <h1>Таск жагсаалт</h1>
       <TodoForm onSubmit={addTodo} todoTypes={Object.values(TODO_TYPES)} />
       <TodoList 
         todos={todos}

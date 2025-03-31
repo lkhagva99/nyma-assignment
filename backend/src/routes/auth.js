@@ -6,7 +6,7 @@ const router = express.Router();
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { studentCode, password } = req.body;
+    const { studentCode, password, lastName, firstName } = req.body;
     
     // Check if user already exists
     const existingUser = await Student.findOne({ studentCode });
@@ -14,7 +14,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const student = new Student({ studentCode, password });
+    const student = new Student({ studentCode, password, lastName, firstName });
     await student.save();
 
     // Generate token

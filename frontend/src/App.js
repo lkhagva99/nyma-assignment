@@ -1,155 +1,146 @@
 import React, { useState, useCallback } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import TodoList from "./components/TodoList";
 import TodoForm from "./components/TodoForm";
 import TodoCountdown from "./components/TodoCountdown";
 import Modal from "./components/Modal";
+import Login from "./components/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { useAuth } from "./context/AuthContext";
 import "./components/Todo.css";
 
-function App() {
-  // Initial test todos
+function TodoApp() {
+  const todoTypes = ["Lab", "Assignment", "Exam"];
+
   const initialTodos = [
     {
       id: 1,
       text: "Complete React Project",
-      description:
-        "Implement all features and test thoroughly before submission",
-      type: "Work",
-      deadlineDate: new Date(
-        Date.now() + 2 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 2 days from now
+      description: "Implement all features and test thoroughly before submission",
+      type: "Assignment",
+      deadlineDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 2,
-      text: "Gym Session",
-      description: "Cardio and strength training",
-      type: "Health",
-      deadlineDate: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(), // 4 hours from now
+      text: "Data Structures Lab",
+      description: "Implement binary search tree operations",
+      type: "Lab",
+      deadlineDate: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 3,
-      text: "Grocery Shopping",
-      description: "Buy vegetables, fruits, and weekly essentials",
-      type: "Shopping",
-      deadlineDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 1 day from now
+      text: "Database Design Assignment",
+      description: "Design ERD for library management system",
+      type: "Assignment",
+      deadlineDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       completed: true,
     },
     {
       id: 4,
-      text: "Read Design Patterns Book",
-      description: "Focus on creational and structural patterns",
-      type: "Personal",
-      deadlineDate: new Date(
-        Date.now() + 5 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 5 days from now
+      text: "Machine Learning Lab",
+      description: "Implement linear regression from scratch",
+      type: "Lab",
+      deadlineDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 5,
-      text: "Dentist Appointment",
-      description: "Regular checkup and cleaning",
-      type: "Health",
-      deadlineDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago (overdue)
+      text: "Final Exam",
+      description: "Comprehensive exam covering all course materials",
+      type: "Exam",
+      deadlineDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 6,
-      text: "Team Meeting",
-      description: "Sprint planning and task assignment",
-      type: "Work",
-      deadlineDate: new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString(), // 1 hour from now
+      text: "Team Project Lab",
+      description: "Group coding session for project implementation",
+      type: "Lab",
+      deadlineDate: new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 7,
-      text: "Birthday Gift Shopping",
-      description: "Find a perfect gift for mom's birthday",
-      type: "Shopping",
-      deadlineDate: new Date(
-        Date.now() + 3 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 3 days from now
+      text: "Research Paper Assignment",
+      description: "Write paper on latest AI developments",
+      type: "Assignment",
+      deadlineDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 8,
-      text: "Write Blog Post",
-      description:
-        "Article about React best practices and performance optimization",
-      type: "Personal",
-      deadlineDate: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 7 days from now
+      text: "Midterm Exam",
+      description: "Exam covering first half of the course",
+      type: "Exam",
+      deadlineDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 9,
-      text: "Yoga Class",
-      description: "Morning yoga session for flexibility and mindfulness",
-      type: "Health",
-      deadlineDate: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString(), // 20 hours from now
+      text: "Web Development Lab",
+      description: "Build responsive website using React",
+      type: "Lab",
+      deadlineDate: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 10,
-      text: "Code Review",
-      description: "Review pull requests from the team",
-      type: "Work",
-      deadlineDate: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(), // 6 hours from now
+      text: "Code Review Assignment",
+      description: "Review and provide feedback on peer submissions",
+      type: "Assignment",
+      deadlineDate: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(),
       completed: true,
     },
     {
       id: 11,
-      text: "Home Cleaning",
-      description: "Deep clean the house and organize closets",
-      type: "Personal",
-      deadlineDate: new Date(
-        Date.now() + 2 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 2 days from now
+      text: "Algorithm Lab",
+      description: "Implement sorting algorithms",
+      type: "Lab",
+      deadlineDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 12,
-      text: "Client Presentation",
-      description: "Present the new feature proposals to the client",
-      type: "Work",
-      deadlineDate: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(), // 8 hours from now
+      text: "Project Presentation",
+      description: "Present final project to the class",
+      type: "Assignment",
+      deadlineDate: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 13,
-      text: "Pay Bills",
-      description: "Pay utility bills and rent",
-      type: "Personal",
-      deadlineDate: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago (overdue)
+      text: "Quiz",
+      description: "Weekly quiz on recent topics",
+      type: "Exam",
+      deadlineDate: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 14,
-      text: "Buy New Laptop",
-      description: "Research and purchase new development machine",
-      type: "Shopping",
-      deadlineDate: new Date(
-        Date.now() + 10 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 10 days from now
+      text: "System Design Assignment",
+      description: "Design scalable architecture for e-commerce platform",
+      type: "Assignment",
+      deadlineDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 15,
-      text: "Dental X-Ray",
-      description: "Get dental x-rays for upcoming procedure",
-      type: "Health",
-      deadlineDate: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 48 hours from now
+      text: "Network Programming Lab",
+      description: "Implement client-server communication",
+      type: "Lab",
+      deadlineDate: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
     {
       id: 16,
-      text: "Update Portfolio",
-      description: "Add recent projects and update skills section",
-      type: "Personal",
-      deadlineDate: new Date(
-        Date.now() + 14 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 14 days from now
+      text: "Portfolio Assignment",
+      description: "Create portfolio showcasing all projects",
+      type: "Assignment",
+      deadlineDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       completed: false,
     },
   ];
@@ -159,8 +150,6 @@ function App() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const ITEMS_PER_PAGE = 20;
-
-  const todoTypes = ["Personal", "Work", "Shopping", "Health", "Other"];
 
   const handleAddTodo = (todo) => {
     const newTodo = {
@@ -211,6 +200,42 @@ function App() {
         <TodoForm onSubmit={handleAddTodo} todoTypes={todoTypes} />
       </Modal>
     </div>
+  );
+}
+
+function App() {
+  const { login } = useAuth();
+
+  const handleLogin = (studentCode, password) => {
+    return login(studentCode, password);
+  };
+
+  return (
+    <Router>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      <Routes>
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <TodoApp />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 

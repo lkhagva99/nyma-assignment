@@ -15,7 +15,7 @@ function TodoList({ todos, onToggle, onDelete }) {
 
   return (
     <div>
-      <h1>Hello, {student?.firstName || "Nymdorj"}</h1>
+      <h1>Сайн уу, {student?.firstName || "Nymdorj"}</h1>
       <ul className="todo-list">
         {todos.map((todo) => (
           <li
@@ -36,13 +36,13 @@ function TodoList({ todos, onToggle, onDelete }) {
                 </span>
                 {todo.deadlineDate && (
                   <span className="todo-deadline">
-                    Due: {formatDate(todo.deadlineDate)}
+                    Дуусах: {formatDate(todo.deadlineDate)}
                   </span>
                 )}
               </div>
             </div>
             <button onClick={() => onDelete(todo.id)} className="todo-delete">
-              Delete
+              Устгах
             </button>
           </li>
         ))}

@@ -27,7 +27,7 @@ function TodoForm({ onSubmit, todoTypes }) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Add a todo..."
+          placeholder="Таск нэмэх..."
           className="todo-input"
           required
         />
@@ -45,7 +45,7 @@ function TodoForm({ onSubmit, todoTypes }) {
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Add a description (optional)"
+          placeholder="Тайлбар оруулах (сонголтоор)"
           className="todo-description"
         />
       </div>
@@ -55,10 +55,10 @@ function TodoForm({ onSubmit, todoTypes }) {
           value={deadlineDate}
           onChange={(e) => setDeadlineDate(e.target.value)}
           className="todo-date-input"
-          placeholder="Deadline (optional)"
+          placeholder="Дуусах огноо (сонголтоор)"
         />
         <button type="submit" className="todo-button">
-          Add Todo
+          Таск нэмэх
         </button>
       </div>
     </form>
