@@ -1,7 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./Todo.css";
 
 function TodoList({ todos, onToggle, onDelete, onAddClick }) {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -19,12 +23,22 @@ function TodoList({ todos, onToggle, onDelete, onAddClick }) {
     setStudent(user);
   }, []);
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
-    <div>
-      <h1>Сайн уу, {student?.firstName || "Nymdorj"}</h1>
+    <div style={{ marginTop: "20px" }}>
+      <div className="todo-header">
+        <h1>Сайн уу, {student?.firstName || "Nymdorj"}</h1>
+        <button className="logout-button" onClick={handleLogout}>
+          Гарах
+        </button>
+      </div>
       <ul className="todo-list">
         <li>
-          <button className="todo-add" onClick={onAddClick}>Үүсгэх</button>
+          <button className="todo-add" onClick={onAddClick}>Нэмэх</button>
         </li>
         {todos.map((todo) => (
           <li

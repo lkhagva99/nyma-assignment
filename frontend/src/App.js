@@ -1,27 +1,27 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
-import TodoList from "./components/TodoList";
-import TodoForm from "./components/TodoForm";
-import TodoCountdown from "./components/TodoCountdown";
-import Modal from "./components/Modal";
-import Login from "./components/Login";
-import ProtectedRoute from "./components/ProtectedRoute";
+import TodoList from "./components/todo/TodoList";
+import TodoForm from "./components/todo/TodoForm";
+import TodoCountdown from "./components/todo/TodoCountdown";
+import Modal from "./components/common/Modal";
+import Login from "./components/auth/Login";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
-import "./components/Todo.css";
-import Register from "./components/Register";
+import { ThemeProvider } from "./context/ThemeContext";
+import ThemeSelector from "./components/common/ThemeSelector";
+import "./components/todo/Todo.css";
+import Register from "./components/auth/Register";
 
 function TodoApp() {
   const todoTypes = ["Lab", "Assignment", "Exam"];
   const [todos, setTodos] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
-  const ITEMS_PER_PAGE = 20;
 
   const fetchTodos = async () => {
     if (!isAuthenticated) {
@@ -131,12 +131,12 @@ function TodoApp() {
 
   return (
     <div className="app">
+      <ThemeSelector />
       <TodoList
         todos={todos}
         onToggle={handleToggle}
         onDelete={handleDelete}
         onLoadMore={loadMore}
-        hasMore={hasMore}
         onAddClick={() => setIsModalOpen(true)}
       />
       <TodoCountdown todos={todos} />
@@ -156,32 +156,34 @@ function App() {
   };
 
   return (
-    <Router>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-      <Routes>
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route path="/register" element={<Register />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <TodoApp />
-            </ProtectedRoute>
-          }
+    <ThemeProvider>
+      <Router>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
         />
-      </Routes>
-    </Router>
+        <Routes>
+          <Route path="/login" element={<Login onLogin={handleLogin} />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <TodoApp />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 
