@@ -20,7 +20,7 @@ function TodoCountdown({ todos }) {
   };
 
   const todosWithDeadline = todos
-    .filter(todo => todo.deadlineDate && !todo.completed)
+    .filter(todo => todo.deadlineDate && todo.status !== 'completed')
     .sort((a, b) => new Date(a.deadlineDate) - new Date(b.deadlineDate));
 
   return (
@@ -32,8 +32,8 @@ function TodoCountdown({ todos }) {
           const isOverdue = time.total < 0;
           
           return (
-            <div key={todo.id} className={`countdown-item ${isOverdue ? 'overdue' : ''}`}>
-              <h3>{todo.text}</h3>
+            <div key={todo._id} className={`countdown-item ${isOverdue ? 'overdue' : ''}`}>
+              <h3>{todo.title}</h3>
               {isOverdue ? (
                 <div className="countdown-time overdue">Хугацаа хэтэрсэн!</div>
               ) : (

@@ -3,24 +3,53 @@ const Student = require('../models/Student');
 
 const auth = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    // Get authorization header
+    const authHeader = req.header('Authorization');
     
-    if (!token) {
-      throw new Error();
+    if (!authHeader) {
+      return res.status(401).json({ message: 'No authorization header found' });
     }
 
+    // Check if it's a Bearer token
+    if (!authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Invalid token format' });
+    }
+
+    // Extract the token
+    const token = authHeader.split(' ')[1];
+    
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    
+    if (!decoded.userId) {
+      return res.status(401).json({ message: 'Invalid token payload' });
+    }
+
+    // Find the user
     const student = await Student.findById(decoded.userId);
 
     if (!student) {
-      throw new Error();
+      return res.status(401).json({ message: 'User not found' });
     }
 
-    req.student = student;
+    // Attach user and token to request object
+    req.user = student;  // Using req.user as it's more standard
+    req.student = student; // Keeping this for backward compatibility
     req.token = token;
+    
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Please authenticate.' });
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+    if (error instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({ message: 'Token expired' });
+    }
+    res.status(401).json({ message: 'Authentication failed' });
   }
 };
 

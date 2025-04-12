@@ -22,27 +22,8 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ studentCode, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Нэвтрэхэд алдаа гарлаа');
-      }
-
-      // Store the token in localStorage
-      localStorage.setItem('token', data.token);
-      // Call the onLogin prop with the student data
-      onLogin(data.student);
-      // Show success toast
+      await onLogin(studentCode, password);
       toast.success('Амжилттай!');
-      // Redirect to todo list page
       navigate('/');
     } catch (err) {
       const errorMessage = err.message || 'Нэвтрэхэд алдаа гарлаа';
@@ -81,9 +62,12 @@ const Login = ({ onLogin }) => {
               disabled={isLoading}
             />
           </div>
-          <button type="submit" className="login-button" disabled={isLoading}>
-            {isLoading ? 'Нэвтэрч байна...' : 'Нэвтрэх'}
-          </button>
+          <div className="button-container">
+            <button type="submit" className="login-button" disabled={isLoading}>
+              {isLoading ? 'Нэвтэрч байна...' : 'Нэвтрэх'}
+            </button>
+            <button className="login-button" onClick={() => navigate('/register')}>Бүртгүүлэх</button>
+          </div>
         </form>
       </div>
     </div>

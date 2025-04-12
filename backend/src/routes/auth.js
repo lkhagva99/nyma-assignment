@@ -2,12 +2,13 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const Student = require('../models/Student');
 const router = express.Router();
+const auth = require('../middleware/auth');
 
 // Register
 router.post('/register', async (req, res) => {
   try {
     const { studentCode, password, lastName, firstName } = req.body;
-    
+
     // Check if user already exists
     const existingUser = await Student.findOne({ studentCode });
     if (existingUser) {
@@ -34,7 +35,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { studentCode, password } = req.body;
-    
+
     // Find user
     const student = await Student.findOne({ studentCode });
     if (!student) {
@@ -59,5 +60,17 @@ router.post('/login', async (req, res) => {
     res.status(400).json({ message: 'Error logging in', error: error.message });
   }
 });
+
+router.get('/me', auth, async (req, res) => {
+  try {
+    const student = await Student.findById(req.user.id);
+    delete student.password;
+    res.json({ data: student });
+  } catch (error) {
+    res.status(401).json({ message: 'Unauthorized' });
+  }
+});
+
+
 
 module.exports = router; 
