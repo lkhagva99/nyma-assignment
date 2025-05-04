@@ -9,19 +9,52 @@ import TodoCountdown from "./components/todo/TodoCountdown";
 import Modal from "./components/common/Modal";
 import Login from "./components/auth/Login";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import CategoryForm from "./components/category/CategoryForm";
 import { useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import ThemeSelector from "./components/common/ThemeSelector";
 import "./components/todo/Todo.css";
 import Register from "./components/auth/Register";
+import { useNavigate } from "react-router-dom";
 
 function TodoApp() {
-  const todoTypes = ["Lab", "Assignment", "Exam"];
   const [todos, setTodos] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
+  const [activeTab, setActiveTab] = useState('all');
+  const todoTypes = ["Lab", "Assignment", "Exam"];
+  const [student, setStudent] = React.useState({
+    firstName: "Nymdorj",
+    lastName: "Baasandorj",
+    studentCode: "2019000000",
+  });
+  const [categories, setCategories] = useState([]);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingTodo, setEditingTodo] = useState(null);
+
+  const fetchCategories = async () => {
+    const token = localStorage.getItem('token');
+    const { data: response } = await axios.get('http://localhost:3000/api/categories', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    setCategories(response.data);
+  }
+  React.useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    setStudent(user);
+    fetchCategories();
+  }, []);
+
+  React.useEffect(() => {
+    fetchTodos();
+  }, [activeTab]);
 
   const fetchTodos = async () => {
     if (!isAuthenticated) {
@@ -31,7 +64,8 @@ function TodoApp() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const {data: response} = await axios.get('http://localhost:3000/api/todos',  {
+      const url = activeTab === 'all' ? 'http://localhost:3000/api/todos' : `http://localhost:3000/api/todos?category=${categories.find(cat => cat.name === activeTab)?._id}`;
+      const { data: response } = await axios.get(url, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -56,24 +90,50 @@ function TodoApp() {
   const handleAddTodo = async (todo) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3000/api/todos', {
-        title: todo.text,
-        description: todo.description,
-        type: todo.type,
-        deadlineDate: todo.deadlineDate,
-        status: 'pending'
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const currentChosenCategory = categories.find(cat => cat.name === activeTab);
       
-      setTodos(prevTodos => [response.data, ...prevTodos]);
+      if (todo.id) {
+        // Update existing todo
+        const response = await axios.patch(`http://localhost:3000/api/todos/${todo.id}`, {
+          title: todo.text,
+          description: todo.description,
+          type: todo.type,
+          deadlineDate: todo.deadlineDate,
+          category: todo.category || currentChosenCategory?._id
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        setTodos(prevTodos =>
+          prevTodos.map(t => t._id === todo.id ? response.data : t)
+        );
+        toast.success('Todo updated successfully');
+      } else {
+        // Create new todo
+        const response = await axios.post('http://localhost:3000/api/todos', {
+          title: todo.text,
+          description: todo.description,
+          type: todo.type,
+          deadlineDate: todo.deadlineDate,
+          status: 'pending',
+          category: todo.category || currentChosenCategory?._id
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        setTodos(prevTodos => [response.data, ...prevTodos]);
+        toast.success('Todo added successfully');
+      }
+      
       setIsModalOpen(false);
-      toast.success('Todo added successfully');
+      setEditingTodo(null);
     } catch (error) {
-      toast.error('Failed to add todo');
-      console.error('Error adding todo:', error);
+      toast.error(todo.id ? 'Failed to update todo' : 'Failed to add todo');
+      console.error('Error saving todo:', error);
     }
   };
 
@@ -82,7 +142,7 @@ function TodoApp() {
       const token = localStorage.getItem('token');
       const todo = todos.find(t => t._id === id);
       const newStatus = todo.status === 'completed' ? 'pending' : 'completed';
-      
+
       const response = await axios.patch(`http://localhost:3000/api/todos/${id}`, {
         status: newStatus
       }, {
@@ -90,7 +150,7 @@ function TodoApp() {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       setTodos(prevTodos =>
         prevTodos.map(todo =>
           todo._id === id ? response.data : todo
@@ -129,20 +189,156 @@ function TodoApp() {
     return null;
   }
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const handleEditCategory = (category) => {
+    setEditingCategory(category);
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleDeleteCategory = async (categoryId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:3000/api/categories/${categoryId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      setCategories(prev => prev.filter(cat => cat._id !== categoryId));
+      toast.success('Category deleted successfully');
+
+      // If the deleted category was active, switch to 'all'
+      if (activeTab === categories.find(cat => cat._id === categoryId)?.name) {
+        setActiveTab('all');
+      }
+    } catch (error) {
+      toast.error('Failed to delete category');
+      console.error('Error deleting category:', error);
+    }
+  };
+
+  const handleCategoryModalClose = () => {
+    setIsCategoryModalOpen(false);
+    setEditingCategory(null);
+  };
+
+  const handleEditTodo = (todo) => {
+    setEditingTodo(todo);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setEditingTodo(null);
+  };
+
+  const getContrastColor = (hexColor) => {
+    // Remove the # if present
+    const hex = hexColor.replace('#', '');
+    
+    // Convert to RGB
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // Calculate relative luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    // Return black for light colors and white for dark colors
+    return luminance > 0.5 ? '#000000' : '#FFFFFF';
+  };
+
   return (
     <div className="app">
       <ThemeSelector />
-      <TodoList
-        todos={todos}
-        onToggle={handleToggle}
-        onDelete={handleDelete}
-        onLoadMore={loadMore}
-        onAddClick={() => setIsModalOpen(true)}
-      />
+      <div className="todo_container">
+        <div className="todo-header">
+          <h1>Сайн уу, {student?.firstName || "Nymdorj"}</h1>
+          <button className="logout-button" onClick={handleLogout}>
+            Гарах
+          </button>
+        </div>
+        <div className="todo_list">
+          <div className="tabs">
+            <button
+              className={`tab ${activeTab === 'all' ? 'active' : ''}`}
+              onClick={() => setActiveTab('all')}
+            >
+              All
+            </button>
+            {categories.map(type => (
+              <div key={type._id} className="tab-container">
+                <button
+                  className={`tab ${activeTab === type.name ? 'active' : ''}`}
+                  onClick={() => setActiveTab(type.name)}
+                  style={{ 
+                    backgroundColor: type.colorCode,
+                    color: getContrastColor(type.colorCode)
+                  }}
+                >
+                  {type.name}
+                </button>
+                <div className="tab-actions">
+                  <button
+                    className="edit-corner-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditCategory(type);
+                    }}
+                  >
+                    ✎
+                  </button>
+                  <button
+                    className="delete-corner-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.confirm('Are you sure you want to delete this category?')) {
+                        handleDeleteCategory(type._id);
+                      }
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            ))}
+            {
+              isAuthenticated && (
+                <button className="add-category-button" onClick={() => setIsCategoryModalOpen(true)}>+</button>
+              )
+            }
+          </div>
+          <TodoList
+            todos={todos}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+            onLoadMore={loadMore}
+            onAddClick={() => setIsModalOpen(true)}
+            onEdit={handleEditTodo}
+          />
+        </div>
+      </div>
       <TodoCountdown todos={todos} />
-
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <TodoForm onSubmit={handleAddTodo} todoTypes={todoTypes} />
+      <Modal isOpen={isModalOpen} onClose={handleModalClose}>
+        <TodoForm 
+          onSubmit={handleAddTodo} 
+          todoTypes={todoTypes} 
+          chosenCategory={categories.find(cat => cat.name === activeTab)}
+          todo={editingTodo}
+        />
+      </Modal>
+      <Modal isOpen={isCategoryModalOpen} onClose={handleCategoryModalClose}>
+        <CategoryForm
+          category={editingCategory}
+          onSuccess={() => {
+            handleCategoryModalClose();
+            fetchCategories();
+          }}
+        />
       </Modal>
     </div>
   );

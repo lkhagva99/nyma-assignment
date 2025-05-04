@@ -22,6 +22,11 @@ const todoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: false,
+    ref: 'Category'
+  },
   studentId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,

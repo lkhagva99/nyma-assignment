@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 // Import routes
 const authRoutes = require('./routes/auth');
 const todoRoutes = require('./routes/todos');
+const categoryRoutes = require('./routes/categories');
 
 // Load environment variables
 dotenv.config();
@@ -24,6 +25,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/todo-app'
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/todos', todoRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

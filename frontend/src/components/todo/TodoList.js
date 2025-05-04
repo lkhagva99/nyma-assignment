@@ -1,41 +1,15 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import "./Todo.css";
 
-function TodoList({ todos, onToggle, onDelete, onAddClick }) {
-  const navigate = useNavigate();
-  const { logout } = useAuth();
+function TodoList({ todos, onToggle, onDelete, onAddClick, onEdit }) {
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
     return date.toLocaleString();
   };
-  const [student, setStudent] = React.useState({
-    firstName: "Nymdorj",
-    lastName: "Baasandorj",
-    studentCode: "2019000000",
-  });
-
-  React.useEffect(() => {
-    console.log(todos)
-    const user = JSON.parse(localStorage.getItem('user'));
-    setStudent(user);
-  }, []);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   return (
     <div style={{ marginTop: "20px" }}>
-      <div className="todo-header">
-        <h1>Сайн уу, {student?.firstName || "Nymdorj"}</h1>
-        <button className="logout-button" onClick={handleLogout}>
-          Гарах
-        </button>
-      </div>
       <ul className="todo-list">
         <li>
           <button className="todo-add" onClick={onAddClick}>Нэмэх</button>
@@ -67,9 +41,14 @@ function TodoList({ todos, onToggle, onDelete, onAddClick }) {
                 )}
               </div>
             </div>
-            <button onClick={() => onDelete(todo._id)} className="todo-delete">
-              Устгах
-            </button>
+            <div className="todo-actions">
+              <button onClick={() => onEdit(todo)} className="todo-edit">
+                Засах
+              </button>
+              <button onClick={() => onDelete(todo._id)} className="todo-delete">
+                Устгах
+              </button>
+            </div>
           </li>
         ))}
       </ul>

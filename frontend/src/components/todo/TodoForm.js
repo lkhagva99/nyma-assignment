@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Todo.css';
 
-function TodoForm({ onSubmit, todoTypes }) {
+function TodoForm({ onSubmit, todoTypes, chosenCategory, todo }) {
   const [input, setInput] = useState('');
   const [description, setDescription] = useState('');
   const [selectedType, setSelectedType] = useState(todoTypes[0]);
   const [deadlineDate, setDeadlineDate] = useState('');
+
+  useEffect(() => {
+    if (todo) {
+      setInput(todo.title);
+      setDescription(todo.description || '');
+      setSelectedType(todo.type);
+      setDeadlineDate(todo.deadlineDate ? new Date(todo.deadlineDate).toISOString().slice(0, 16) : '');
+    }
+  }, [todo]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -13,11 +22,15 @@ function TodoForm({ onSubmit, todoTypes }) {
       text: input,
       description: description,
       type: selectedType,
-      deadlineDate: deadlineDate || null
+      deadlineDate: deadlineDate || null,
+      category: chosenCategory?._id || null,
+      id: todo?._id
     });
-    setInput('');
-    setDescription('');
-    setDeadlineDate('');
+    if (!todo) {
+      setInput('');
+      setDescription('');
+      setDeadlineDate('');
+    }
   };
 
   return (
@@ -36,7 +49,7 @@ function TodoForm({ onSubmit, todoTypes }) {
           onChange={(e) => setSelectedType(e.target.value)}
           className="todo-type-select"
         >
-          {todoTypes.map(type => (
+          {(chosenCategory?.subTypes || todoTypes).map(type => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>
@@ -58,7 +71,7 @@ function TodoForm({ onSubmit, todoTypes }) {
           placeholder="Дуусах огноо (сонголтоор)"
         />
         <button type="submit" className="todo-button">
-          Таск нэмэх
+          {todo ? 'Хадгалах' : 'Таск нэмэх'}
         </button>
       </div>
     </form>
