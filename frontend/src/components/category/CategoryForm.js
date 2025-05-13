@@ -43,7 +43,7 @@ function CategoryForm({ category, onSuccess, onError, closeModal }) {
       let response;
       if (category) {
         // Update existing category
-        response = await axios.put(`http://localhost:3000/api/categories/${category._id}`, formData, { headers });
+        response = await axios.patch(`http://localhost:3000/api/categories/${category._id}`, formData, { headers });
         toast.success('Category updated successfully!');
       } else {
         // Create new category
