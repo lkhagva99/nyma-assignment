@@ -4,7 +4,7 @@ import './Todo.css';
 function TodoForm({ onSubmit, todoTypes, chosenCategory, todo }) {
   const [input, setInput] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedType, setSelectedType] = useState(todoTypes[0]);
+  const [selectedType, setSelectedType] = useState('');
   const [deadlineDate, setDeadlineDate] = useState('');
 
   useEffect(() => {
@@ -13,8 +13,12 @@ function TodoForm({ onSubmit, todoTypes, chosenCategory, todo }) {
       setDescription(todo.description || '');
       setSelectedType(todo.type);
       setDeadlineDate(todo.deadlineDate ? new Date(todo.deadlineDate).toISOString().slice(0, 16) : '');
+    } else {
+      // Set default type based on available options
+      const availableTypes = chosenCategory?.subTypes || todoTypes;
+      setSelectedType(availableTypes[0] || '');
     }
-  }, [todo]);
+  }, [todo, chosenCategory, todoTypes]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -33,6 +37,8 @@ function TodoForm({ onSubmit, todoTypes, chosenCategory, todo }) {
     }
   };
 
+  const availableTypes = chosenCategory?.subTypes || todoTypes;
+
   return (
     <form className="todo-form" onSubmit={handleSubmit}>
       <div className="todo-form-row">
@@ -48,8 +54,9 @@ function TodoForm({ onSubmit, todoTypes, chosenCategory, todo }) {
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
           className="todo-type-select"
+          required
         >
-          {(chosenCategory?.subTypes || todoTypes).map(type => (
+          {availableTypes.map(type => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>
